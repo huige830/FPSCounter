@@ -10,10 +10,10 @@ namespace FPSCounter
         private static int _maxHistorySize = 120;
         private static Rect _graphRect;
         private static readonly Color _graphLineColor = new Color(0.2f, 0.9f, 0.2f, 1f);
-        private static readonly Color _graphFillColor = new Color(0.2f, 0.9f, 0.2f, 0.15f);
-        private static readonly Color _graphBackground = new Color(0.05f, 0.05f, 0.05f, 0.7f);
-        private static readonly Color _gridColor = new Color(1f, 1f, 1f, 0.15f);
-        private static readonly Color _borderColor = new Color(0.4f, 0.4f, 0.4f, 0.8f);
+        private static readonly Color _graphFillColor = new Color(0.2f, 0.9f, 0.2f, 0.12f);
+        private static readonly Color _graphBackground = new Color(0.05f, 0.05f, 0.05f, 0.6f);
+        private static readonly Color _gridColor = new Color(1f, 1f, 1f, 0.1f);
+        private static readonly Color _borderColor = new Color(0.3f, 0.3f, 0.3f, 0.6f);
         private static Texture2D _pixelTexture;
         private static Texture2D _lineTexture;
         private static Texture2D _fillTexture;
@@ -70,19 +70,19 @@ namespace FPSCounter
         {
             int w = Screen.width;
             int h = Screen.height;
-            int graphWidth = Mathf.Min(_maxHistorySize * 2, w / 3);
-            int graphHeight = h / 8;
+            int graphWidth = Mathf.Min(_maxHistorySize * 3, w / 2);
+            int graphHeight = Mathf.Max(20, h / 25);
 
             switch (position)
             {
                 case TextAnchor.UpperLeft:
-                    _graphRect = new Rect(screenOffset, screenOffset + h / 12, graphWidth, graphHeight);
+                    _graphRect = new Rect(screenOffset, screenOffset + h / 18, graphWidth, graphHeight);
                     break;
                 case TextAnchor.UpperCenter:
-                    _graphRect = new Rect((w - graphWidth) / 2, screenOffset + h / 12, graphWidth, graphHeight);
+                    _graphRect = new Rect((w - graphWidth) / 2, screenOffset + h / 18, graphWidth, graphHeight);
                     break;
                 case TextAnchor.UpperRight:
-                    _graphRect = new Rect(w - graphWidth - screenOffset, screenOffset + h / 12, graphWidth, graphHeight);
+                    _graphRect = new Rect(w - graphWidth - screenOffset, screenOffset + h / 18, graphWidth, graphHeight);
                     break;
                 case TextAnchor.MiddleLeft:
                     _graphRect = new Rect(screenOffset, (h - graphHeight) / 2, graphWidth, graphHeight);
@@ -94,13 +94,13 @@ namespace FPSCounter
                     _graphRect = new Rect(w - graphWidth - screenOffset, (h - graphHeight) / 2, graphWidth, graphHeight);
                     break;
                 case TextAnchor.LowerLeft:
-                    _graphRect = new Rect(screenOffset, h - graphHeight - screenOffset - h / 25, graphWidth, graphHeight);
+                    _graphRect = new Rect(screenOffset, h - graphHeight - screenOffset - h / 40, graphWidth, graphHeight);
                     break;
                 case TextAnchor.LowerCenter:
-                    _graphRect = new Rect((w - graphWidth) / 2, h - graphHeight - screenOffset - h / 25, graphWidth, graphHeight);
+                    _graphRect = new Rect((w - graphWidth) / 2, h - graphHeight - screenOffset - h / 40, graphWidth, graphHeight);
                     break;
                 case TextAnchor.LowerRight:
-                    _graphRect = new Rect(w - graphWidth - screenOffset, h - graphHeight - screenOffset - h / 25, graphWidth, graphHeight);
+                    _graphRect = new Rect(w - graphWidth - screenOffset, h - graphHeight - screenOffset - h / 40, graphWidth, graphHeight);
                     break;
                 default:
                     _graphRect = new Rect(w - graphWidth - screenOffset, h - graphHeight - screenOffset, graphWidth, graphHeight);
@@ -206,13 +206,7 @@ namespace FPSCounter
 
             DrawFilledArea(points, bottomY, _graphFillColor);
 
-            float lineThickness = Mathf.Max(1.5f, _graphRect.height / 60f);
-
-            for (int i = 1; i <= 3; i++)
-            {
-                float y = _graphRect.y + (_graphRect.height * i / 4f);
-                DrawLine(new Vector2(_graphRect.x, y), new Vector2(_graphRect.x + _graphRect.width, y), _gridColor, 1f);
-            }
+            float lineThickness = Mathf.Max(1f, _graphRect.height / 40f);
 
             for (int i = 0; i < points.Length - 1; i++)
             {
@@ -225,16 +219,17 @@ namespace FPSCounter
             DrawLine(new Vector2(_graphRect.x + _graphRect.width, _graphRect.y), new Vector2(_graphRect.x + _graphRect.width, _graphRect.y + _graphRect.height), _borderColor, 1f);
 
             GUIStyle labelStyle = new GUIStyle();
-            labelStyle.fontSize = Mathf.Max(8, Mathf.RoundToInt(_graphRect.height / 8f));
-            labelStyle.normal.textColor = new Color(0.8f, 0.8f, 0.8f, 0.9f);
+            labelStyle.fontSize = Mathf.Max(8, Mathf.RoundToInt(_graphRect.height * 0.35f));
+            labelStyle.normal.textColor = new Color(0.2f, 0.9f, 0.2f, 1f);
             labelStyle.fontStyle = FontStyle.Bold;
+            labelStyle.alignment = TextAnchor.LowerLeft;
 
-            GUI.Label(new Rect(_graphRect.x + 4, _graphRect.y + 2, 100, 20), $"{_currentMaxFPS:F0}", labelStyle);
-            GUI.Label(new Rect(_graphRect.x + 4, _graphRect.y + _graphRect.height - labelStyle.fontSize - 2, 100, 20), $"{_currentMinFPS:F0}", labelStyle);
+            string avgText = $"Avg: {avgFPS:F1}";
+            Vector2 textSize = labelStyle.CalcSize(new GUIContent(avgText));
+            float labelX = _graphRect.x + 2;
+            float labelY = _graphRect.y + _graphRect.height - textSize.y - 1;
 
-            string avgText = $"{avgFPS:F1}";
-            Vector2 avgSize = labelStyle.CalcSize(new GUIContent(avgText));
-            GUI.Label(new Rect(_graphRect.x + (_graphRect.width - avgSize.x) / 2, _graphRect.y + 2, avgSize.x, 20), avgText, labelStyle);
+            GUI.Label(new Rect(labelX, labelY, textSize.x, textSize.y), avgText, labelStyle);
         }
 
         public static void Clear()

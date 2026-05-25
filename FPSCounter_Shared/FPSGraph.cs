@@ -23,6 +23,15 @@ namespace FPSCounter
         private static float _targetMinFPS = 0f;
         private static float _targetMaxFPS = 60f;
 
+        private static float _showDelay = 10f;
+        private static float _elapsedTime = 0f;
+
+        public static float ShowDelay
+        {
+            get => _showDelay;
+            set => _showDelay = Mathf.Max(0f, value);
+        }
+
         public static bool ShowGraph { get; set; }
         public static int MaxHistorySize
         {
@@ -60,6 +69,9 @@ namespace FPSCounter
         public static void AddFPS(float fps)
         {
             if (!ShowGraph) return;
+
+            _elapsedTime += Time.unscaledDeltaTime;
+            if (_elapsedTime < _showDelay) return;
 
             _fpsHistory.Enqueue(fps);
             while (_fpsHistory.Count > _maxHistorySize)
@@ -153,7 +165,7 @@ namespace FPSCounter
 
         public static void Draw()
         {
-            if (!ShowGraph || _fpsHistory.Count < 2) return;
+            if (!ShowGraph || _fpsHistory.Count < 2 || _elapsedTime < _showDelay) return;
 
             Initialize();
 

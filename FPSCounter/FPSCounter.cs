@@ -25,6 +25,7 @@ namespace FPSCounter
         private static ConfigEntry<bool> _measureGC;
         private static ConfigEntry<bool> _showFPSGraph;
         private static ConfigEntry<int> _fpsGraphHistorySize;
+        private static ConfigEntry<float> _fpsGraphShowDelay;
 
         internal static new ManualLogSource Logger;
 
@@ -58,6 +59,7 @@ namespace FPSCounter
             _counterColor = Config.Bind("Interface", "Color of the text", CounterColors.White, "Color of the displayed stats. Outline has a performance hit but it always easy to see.");
             _showFPSGraph = Config.Bind("Interface", "Show FPS graph", true, "Show a line graph of FPS history on the screen.");
             _fpsGraphHistorySize = Config.Bind("Interface", "FPS graph history size", 120, new ConfigDescription("Number of frames to show in the FPS graph.", new AcceptableValueRange<int>(30, 600)));
+            _fpsGraphShowDelay = Config.Bind("Interface", "FPS graph show delay", 10f, new ConfigDescription("Delay in seconds before showing the FPS graph after startup.", new AcceptableValueRange<float>(0f, 60f)));
 
             _position.SettingChanged += (sender, args) => UpdateLooks();
             _counterColor.SettingChanged += (sender, args) => UpdateLooks();
@@ -67,6 +69,7 @@ namespace FPSCounter
                 if (!_showFPSGraph.Value) FPSGraph.Clear();
             };
             _fpsGraphHistorySize.SettingChanged += (sender, args) => FPSGraph.MaxHistorySize = _fpsGraphHistorySize.Value;
+            _fpsGraphShowDelay.SettingChanged += (sender, args) => FPSGraph.ShowDelay = _fpsGraphShowDelay.Value;
             _shown.SettingChanged += (sender, args) =>
             {
                 UpdateLooks();
@@ -117,6 +120,11 @@ namespace FPSCounter
                 UpdateLooks();
                 SetCapturingEnabled(true);
             }
+
+            if (_showFPSGraph != null)
+                FPSGraph.ShowGraph = _showFPSGraph.Value;
+            if (_fpsGraphShowDelay != null)
+                FPSGraph.ShowDelay = _fpsGraphShowDelay.Value;
         }
 
         private void OnDisable()

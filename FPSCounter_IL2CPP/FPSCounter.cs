@@ -26,6 +26,8 @@ namespace FPSCounter
         private static ConfigEntry<bool> _showUnityMethodStats;
         private static ConfigEntry<bool> _measureMemory;
         private static ConfigEntry<bool> _measureGC;
+        private static ConfigEntry<bool> _showFPSGraph;
+        private static ConfigEntry<int> _fpsGraphHistorySize;
 
         internal static ManualLogSource Logger;
         internal static FrameCounterComponent ComponentInstance;
@@ -58,9 +60,17 @@ namespace FPSCounter
 
             _position = Config.Bind("Interface", "Screen position", TextAnchor.LowerRight, "Which corner of the screen to display the statistics in.");
             _counterColor = Config.Bind("Interface", "Color of the text", CounterColors.White, "Color of the displayed stats. Outline has a performance hit but it always easy to see.");
+            _showFPSGraph = Config.Bind("Interface", "Show FPS graph", true, "Show a line graph of FPS history on the screen.");
+            _fpsGraphHistorySize = Config.Bind("Interface", "FPS graph history size", 120, new ConfigDescription("Number of frames to show in the FPS graph.", new AcceptableValueRange<int>(30, 600)));
 
             _position.SettingChanged += (sender, args) => FrameCounterComponent.UpdateLooks();
             _counterColor.SettingChanged += (sender, args) => FrameCounterComponent.UpdateLooks();
+            _showFPSGraph.SettingChanged += (sender, args) =>
+            {
+                FPSGraph.ShowGraph = _showFPSGraph.Value;
+                if (!_showFPSGraph.Value) FPSGraph.Clear();
+            };
+            _fpsGraphHistorySize.SettingChanged += (sender, args) => FPSGraph.MaxHistorySize = _fpsGraphHistorySize.Value;
             _shown.SettingChanged += (sender, args) =>
             {
                 FrameCounterComponent.UpdateLooks();
@@ -170,6 +180,8 @@ namespace FPSCounter
 
                 _style.alignment = _position.Value;
                 _style.fontSize = h / 65;
+
+                FPSGraph.UpdatePosition(_position.Value, ScreenOffset);
             }
 
             #endregion
@@ -377,6 +389,9 @@ namespace FPSCounter
                         }
 
                         _frameOutputText = fString.PopValue();
+
+                        FPSGraph.AddFPS(fps);
+
                         _measurementStopwatch.Reset();
                     }
                     // ReSharper disable once IteratorNeverReturns
@@ -424,6 +439,7 @@ namespace FPSCounter
                     }
 
                     DrawCounter();
+                    FPSGraph.Draw();
                 }
 
                 #endregion

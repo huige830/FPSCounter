@@ -66,12 +66,18 @@ namespace FPSCounter
             }
         }
 
-        public static void AddFPS(float fps)
+        private static float _lastFrameTimeMs;
+
+        public static void AddFPS(float fps, float frameTimeMs = 0f)
         {
             if (!ShowGraph) return;
 
             _elapsedTime += Time.unscaledDeltaTime;
             if (_elapsedTime < _showDelay) return;
+
+            if (float.IsInfinity(fps) || float.IsNaN(fps) || fps < 0f) return;
+
+            _lastFrameTimeMs = frameTimeMs;
 
             _fpsHistory.Enqueue(fps);
             while (_fpsHistory.Count > _maxHistorySize)
@@ -242,6 +248,13 @@ namespace FPSCounter
             float labelY = _graphRect.y + _graphRect.height - textSize.y - 1;
 
             GUI.Label(new Rect(labelX, labelY, textSize.x, textSize.y), avgText, labelStyle);
+
+            string frameTimeText = _lastFrameTimeMs > 0f ? $"{_lastFrameTimeMs:F1}ms" : $"{1000f / avgFPS:F1}ms";
+            Vector2 frameTimeSize = labelStyle.CalcSize(new GUIContent(frameTimeText));
+            float frameTimeX = _graphRect.x + _graphRect.width - frameTimeSize.x - 2;
+            float frameTimeY = _graphRect.y + _graphRect.height - frameTimeSize.y - 1;
+
+            GUI.Label(new Rect(frameTimeX, frameTimeY, frameTimeSize.x, frameTimeSize.y), frameTimeText, labelStyle);
         }
 
         public static void Clear()

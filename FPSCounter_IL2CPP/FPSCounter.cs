@@ -398,7 +398,7 @@ namespace FPSCounter
 
                         _frameOutputText = fString.PopValue();
 
-                        FPSGraph.AddFPS(fps);
+                        FPSGraph.AddFPS(fps, avgFrame * msScale);
 
                         _measurementStopwatch.Reset();
                     }
